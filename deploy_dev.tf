@@ -20,7 +20,7 @@ resource "aws_instance" "web_dev" {
   ami                         = data.aws_ami.amazon_linux.id
   instance_type               = local.dev_config.instance_type
   vpc_security_group_ids      = [module.dev_security_group.security_group_id]
-  subnet_id                   = aws_subnet.public-subnet[count.index % length(aws_subnet.public-subnet)].id
+  subnet_id                   = aws_subnet.public-subnet.id
   associate_public_ip_address = true
 
   user_data                   = local.user_data
