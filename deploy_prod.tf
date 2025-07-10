@@ -42,3 +42,14 @@ resource "aws_security_group" "sg1_prod" {
         cidr_blocks = ["0.0.0.0/0"]
     }
 }
+
+# Outputs for prod environment
+output "prod_instance_ids" {
+  description = "IDs of prod instances"
+  value       = aws_instance.web_prod[*].id
+}
+
+output "prod_instance_public_ips" {
+  description = "Public IP addresses of prod instances"
+  value       = aws_instance.web_prod[*].public_ip
+}
