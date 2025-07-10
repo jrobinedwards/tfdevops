@@ -33,7 +33,7 @@ resource "aws_instance" "web_prod" {
 }
 
 #add security groups
-module "dev_security_group" {
+module "prod_security_group" {
   source = "./modules/security-group"
   
   environment     = local.prod_config.environment
