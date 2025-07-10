@@ -32,15 +32,52 @@ resource "aws_instance" "web_prod" {
   }
 }
 
+# Improved security group with proper naming and rules
 resource "aws_security_group" "sg1_prod" {
-    name = "sg1prod"
-    vpc_id = aws_vpc.public-vpc.id
-    ingress {
-        from_port = 8080
-        to_port   = 65535
-        protocol = "tcp"
-        cidr_blocks = ["0.0.0.0/0"]
-    }
+  name        = "tf-deploy-sg-${local.prod_config.environment}"
+  description = "Security group for ${local.prod_config.environment} web servers"
+  vpc_id      = aws_vpc.public-vpc.id
+
+  # HTTP access
+  ingress {
+    description = "HTTP"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # HTTPS access
+  ingress {
+    description = "HTTPS"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # SSH access (restricted to VPC)
+  ingress {
+    description = "SSH"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = [aws_vpc.public-vpc.cidr_block]
+  }
+
+  # All outbound traffic
+  egress {
+    description = "All outbound"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name        = "tf-deploy-sg-${local.prod_config.environment}"
+    Environment = local.prod_config.environment
+  }
 }
 
 # Outputs for prod environment
