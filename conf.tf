@@ -12,4 +12,12 @@ terraform {
 
 provider "aws" {
   region = "eu-west-2"
+  
+  # Apply common tags to all resources
+  default_tags {
+    tags = {
+      Project   = "tf-deploy"
+      ManagedBy = "Terraform"
+    }
+  }
 }
