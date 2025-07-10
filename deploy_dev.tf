@@ -18,7 +18,7 @@ resource "aws_instance" "web_dev" {
   count                       = local.dev_config.instance_count
   ami                         = data.aws_ami.amazon_linux.id
   instance_type               = local.dev_config.instance_type
-  vpc_security_group_ids      = [aws_security_group.sg1_dev.id]
+  vpc_security_group_ids      = [module.prod_security_group.security_group_id]
   subnet_id                   = aws_subnet.public-subnet[count.index % length(aws_subnet.public-subnet)].id
   associate_public_ip_address = true
 
@@ -31,54 +31,14 @@ resource "aws_instance" "web_dev" {
   }
 }
 
-# Improved security group with proper naming and rules
-resource "aws_security_group" "sg1_dev" {
-  name        = "tf-deploy-sg-${local.dev_config.environment}"
-  description = "Security group for ${local.dev_config.environment} web servers"
-  vpc_id      = aws_vpc.public-vpc.id
-
-  # HTTP access
-  ingress {
-    description = "HTTP"
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  # HTTPS access
-  ingress {
-    description = "HTTPS"
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  # SSH access (restricted to VPC)
-  ingress {
-    description = "SSH"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = [aws_vpc.public-vpc.cidr_block]
-  }
-
-  # All outbound traffic
-  egress {
-    description = "All outbound"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name        = "tf-deploy-sg-${local.dev_config.environment}"
-    Environment = local.dev_config.environment
-  }
+# reference and use security groups
+module "dev_security_group" {
+  source = "./modules/security-group"
+  
+  environment     = local.dev_config.environment
+  vpc_id          = aws_vpc.public-vpc.id
+  vpc_cidr_block  = aws_vpc.public-vpc.cidr_block
 }
-
 
 # Outputs for dev environment
 output "dev_instance_ids" {
