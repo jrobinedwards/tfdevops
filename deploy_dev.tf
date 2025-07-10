@@ -1,43 +1,34 @@
-resource "aws_instance" "web1_dev" {
-    ami = "ami-0500f74cc2b89fb6b"
+# Local values to reduce repetition
+locals {
+  dev_config = {
+    environment   = "dev"
     instance_type = "t2.micro"
-    vpc_security_group_ids = [aws_security_group.sg1_dev]
-    subnet_id     = aws_subnet.public-subnet.id
-    associate_public_ip_address = true
+    instance_count = 3
+  }
 
-    user_data = <<-EOF
-                #!/bin/bash
-                echo "Hello World"
-                EOF
-    user_data_replace_on_change = true
+# Common user data script
+  user_data = <<-EOF
+    #!/bin/bash
+    echo "<h1>Hello World from $(hostname -f)</h1>"
+    echo "<p>Environment: ${local.dev_config.environment}</p>" 
 }
 
-resource "aws_instance" "web2_dev" {
-    ami = "ami-0500f74cc2b89fb6b"
-    instance_type = "t2.micro"
-    vpc_security_group_ids = [aws_security_group.sg1_dev]
-    subnet_id     = aws_subnet.public-subnet.id
-    associate_public_ip_address = true
+# Create instances using count to reduce duplication
+resource "aws_instance" "web_dev" {
+  count                       = local.dev_config.instance_count
+  ami                         = data.aws_ami.amazon_linux.id
+  instance_type               = local.dev_config.instance_type
+  vpc_security_group_ids      = [aws_security_group.sg1_dev.id]
+  subnet_id                   = aws_subnet.public-subnet[count.index % length(aws_subnet.public-subnet)].id
+  associate_public_ip_address = true
 
-    user_data = <<-EOF
-                #!/bin/bash
-                echo "Hello World"
-                EOF
-    user_data_replace_on_change = true
-}
+  user_data                   = local.user_data
+  user_data_replace_on_change = true
 
-resource "aws_instance" "web3_dev" {
-    ami = "ami-0500f74cc2b89fb6b"
-    instance_type = "t2.micro"
-    vpc_security_group_ids = [aws_security_group.sg1_dev]
-    subnet_id     = aws_subnet.public-subnet.id
-    associate_public_ip_address = true
-
-    user_data = <<-EOF
-                #!/bin/bash
-                echo "Hello World"
-                EOF
-    user_data_replace_on_change = true
+  tags = {
+    Name        = "tf-deploy-web-${local.dev_config.environment}-${count.index + 1}"
+    Environment = local.dev_config.environment
+  }
 }
 
 resource "aws_security_group" "sg1_dev" {
