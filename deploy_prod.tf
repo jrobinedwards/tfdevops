@@ -1,43 +1,17 @@
-resource "aws_instance" "web1_prod" {
-    ami = "ami-0500f74cc2b89fb6b"
+# Local values to reduce repetition
+locals {
+  prod_config = {
+    environment   = "prod"
     instance_type = "t3.large"
-    vpc_security_group_ids = [aws_security_group.sg1_prod]
-    subnet_id     = aws_subnet.public-subnet.id
-    associate_public_ip_address = true
-
-    user_data = <<-EOF
-                #!/bin/bash
-                echo "Hello World"
-                EOF
-    user_data_replace_on_change = true
-}
-
-resource "aws_instance" "web2_prod" {
-    ami = "ami-0500f74cc2b89fb6b"
-    instance_type = "t3.large"
-    vpc_security_group_ids = [aws_security_group.sg1_prod]
-    subnet_id     = aws_subnet.public-subnet.id
-    associate_public_ip_address = true
-
-    user_data = <<-EOF
-                #!/bin/bash
-                echo "Hello World"
-                EOF
-    user_data_replace_on_change = true
-}
-
-resource "aws_instance" "web3_prod" {
-    ami = "ami-0500f74cc2b89fb6b"
-    instance_type = "t3.large"
-    vpc_security_group_ids = [aws_security_group.sg1_prod]
-    subnet_id     = aws_subnet.public-subnet.id
-    associate_public_ip_address = true
-
-    user_data = <<-EOF
-                #!/bin/bash
-                echo "Hello World"
-                EOF
-    user_data_replace_on_change = true
+    instance_count = 3
+  }
+  
+# Common user data script for prod
+prod_user_data = <<-EOF
+    #!/bin/bash
+    echo "<h1>Hello World from $(hostname -f)</h1>"
+    echo "<p>Environment: ${local.prod_config.environment}</p>"
+    EOF
 }
 
 resource "aws_security_group" "sg1_prod" {
