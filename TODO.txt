@@ -1,0 +1,133 @@
+# TODO: Future Infrastructure Improvements
+
+## Critical Issues to Fix
+
+### 1. **VPC & Networking Architecture**
+- [ ] **Add multiple subnets across different AZs** - Currently only one subnet in `eu-west-2c`
+  ```hcl
+  # Add to deploy_vpc.tf
+  resource "aws_subnet" "public-subnet-2" {
+    vpc_id            = aws_vpc.public-vpc.id
+    cidr_block        = "10.0.0.16/28"
+    availability_zone = "eu-west-2a"
+  }
+  ```
+- [ ] **Expand VPC CIDR block** - Current `/24` (10.0.0.0/24) is too small for growth
+  - Change to `10.0.0.0/16` to allow for private subnets, multiple AZs
+- [ ] **Add private subnets** for backend services and databases
+- [ ] **Add NAT Gateway** for private subnet internet access
+- [ ] **Fix subnet reference error** in deploy_dev.tf and deploy_prod.tf (using array notation on single subnet)
+
+### 2. **Security Group Issues**
+
+  # Consider using ALB security group or CloudFront
+  cidr_blocks = [var.allowed_cidr_blocks]
+  ```
+- [ ] **Add security group for ALB** (when implemented)
+
+### 3. **High Availability & Resilience**
+- [ ] **Add Application Load Balancer**
+  ```hcl
+  resource "aws_lb" "web_alb" {
+    name               = "tf-deploy-alb-${var.environment}"
+    internal           = false
+    load_balancer_type = "application"
+    security_groups    = [aws_security_group.alb_sg.id]
+    subnets           = aws_subnet.public-subnet[*].id
+  }
+  ```
+- [ ] **Add Auto Scaling Group** instead of fixed count instances
+- [ ] **Add Launch Template** for consistent instance configuration
+- [ ] **Add health checks** for instances
+- [ ] **Add CloudWatch monitoring** and alarms
+
+### 4. **Instance Configuration**
+- [ ] **Add IMDSv2 enforcement**
+  ```hcl
+  metadata_options {
+    http_endpoint = "enabled"
+    http_tokens   = "required"
+  }
+  ```
+- [ ] **Add EBS encryption**
+  ```hcl
+  root_block_device {
+    encrypted = true
+  }
+  ```
+- [ ] **Add proper IAM role** for instances
+- [ ] **Improve user data script** - Make it more robust with error handling
+
+## Security Improvements
+
+### 5. **Access Control**
+- [ ] **Add Systems Manager Session Manager** for secure access (remove SSH entirely)
+- [ ] **Create least-privilege IAM roles** for instances
+- [ ] **Add AWS Config rules** for compliance monitoring
+- [ ] **Implement AWS CloudTrail** for audit logging
+
+### 6. **Data Protection**
+- [ ] **Add AWS WAF** for application-layer protection
+- [ ] **Implement AWS Shield** for DDoS protection
+- [ ] **Add AWS Certificate Manager** for SSL/TLS certificates
+- [ ] **Add S3 bucket for static assets** with proper policies
+
+### 7. **Secrets Management**
+- [ ] **Use AWS Secrets Manager** or Parameter Store for sensitive data
+- [ ] **Remove hardcoded values** and use variables
+
+## Code Quality & Best Practices
+
+### 8. **Terraform Structure**
+- [ ] **Add terraform.tfvars.example** file
+- [ ] **Add proper variable descriptions and validation**
+  ```hcl
+  variable "environment" {
+    description = "Environment name"
+    type        = string
+    validation {
+      condition     = contains(["dev", "prod"], var.environment)
+      error_message = "Environment must be dev or prod."
+    }
+  }
+  ```
+- [ ] **Add remote state backend** configuration
+- [ ] **Add state locking** with DynamoDB
+- [ ] **Version pin providers** more strictly
+
+### 9. **Resource Organization**
+- [ ] **Create separate files for each major component**
+  - `alb.tf` for load balancer resources
+  - `asg.tf` for auto scaling resources
+  - `iam.tf` for IAM resources
+- [ ] **Use consistent naming conventions**
+- [ ] **Add proper resource dependencies** with explicit depends_on
+
+### 10. **Monitoring & Logging**
+- [ ] **Add CloudWatch Log Groups** for application logs
+- [ ] **Add CloudWatch Dashboards** for monitoring
+- [ ] **Add SNS topics** for alerting
+- [ ] **Add VPC Flow Logs** for network monitoring
+
+## Environment-Specific Improvements
+
+### 11. **Configuration Management**
+- [ ] **Create environment-specific tfvars files**
+- [ ] **Add workspace configuration** for better environment separation
+- [ ] **Implement different scaling policies** per environment
+
+### 12. **Backup & Recovery**
+- [ ] **Add automated snapshots**
+- [ ] **Add backup policies** for critical data
+
+## Additional Recommendations
+
+### 13. **Performance Optimization with CDN**
+
+### 14. **Cost Optimization, alerts and budgets**
+
+### 15. **Documentation**
+- [ ] **Add comprehensive README.md**
+- [ ] **Document architecture decisions**
+- [ ] **Add deployment procedures**
+- [ ] **Create network diagrams**
