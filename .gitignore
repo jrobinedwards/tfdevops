@@ -1,0 +1,3 @@
+# ignore terraform validate files
+.terraform.lock.hcl
+.terraform/
