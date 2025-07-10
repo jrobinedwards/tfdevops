@@ -41,3 +41,15 @@ resource "aws_security_group" "sg1_dev" {
         cidr_blocks = ["0.0.0.0/0"]
     }
 }
+
+
+# Outputs for dev environment
+output "dev_instance_ids" {
+  description = "IDs of dev instances"
+  value       = aws_instance.web_dev[*].id
+}
+
+output "dev_instance_public_ips" {
+  description = "Public IP addresses of dev instances"
+  value       = aws_instance.web_dev[*].public_ip
+}
