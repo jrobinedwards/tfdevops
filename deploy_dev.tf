@@ -6,11 +6,12 @@ locals {
     instance_count = 3
   }
 
-# Common user data script
+  # Common user data script
   user_data = <<-EOF
     #!/bin/bash
     echo "<h1>Hello World from $(hostname -f)</h1>"
     echo "<p>Environment: ${local.dev_config.environment}</p>" 
+    EOF
 }
 
 # Create instances using count to reduce duplication
