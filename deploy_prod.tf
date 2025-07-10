@@ -14,6 +14,24 @@ prod_user_data = <<-EOF
     EOF
 }
 
+# Create instances using count to reduce duplication
+resource "aws_instance" "web_prod" {
+  count                       = local.prod_config.instance_count
+  ami                         = data.aws_ami.amazon_linux.id
+  instance_type               = local.prod_config.instance_type
+  vpc_security_group_ids      = [aws_security_group.sg1_prod.id]
+  subnet_id                   = aws_subnet.public-subnet[count.index % length(aws_subnet.public-subnet)].id
+  associate_public_ip_address = true
+
+  user_data                   = local.prod_user_data
+  user_data_replace_on_change = true
+
+  tags = {
+    Name        = "tf-deploy-web-${local.prod_config.environment}-${count.index + 1}"
+    Environment = local.prod_config.environment
+  }
+}
+
 resource "aws_security_group" "sg1_prod" {
     name = "sg1prod"
     vpc_id = aws_vpc.public-vpc.id
